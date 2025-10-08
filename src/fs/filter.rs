@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //! Filtering and sorting the list of files before displaying them.
 
+use libc::strcoll;
 use std::cmp::Ordering;
+use std::ffi::CString;
 use std::iter::FromIterator;
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
@@ -268,8 +270,8 @@ impl SortField {
         return match self {
             Self::Unsorted  => Ordering::Equal,
 
-            Self::Name(ABCabc)  => natord::compare(&a.name, &b.name),
-            Self::Name(AaBbCc)  => natord::compare_ignore_case(&a.name, &b.name),
+            Self::Name(ABCabc)  => Self::compare(&a.name, &b.name),
+            Self::Name(AaBbCc)  => Self::compare_ignore_case(&a.name, &b.name),
 
             Self::Size          => a.length().cmp(&b.length()),
 
@@ -284,29 +286,48 @@ impl SortField {
             Self::CreatedDate   => a.created_time().cmp(&b.created_time()),
             Self::ModifiedAge   => b.modified_time().cmp(&a.modified_time()),  // flip b and a
             Self::FileType => match a.type_char().cmp(&b.type_char()) { // todo: this recomputes
-                Ordering::Equal  => natord::compare(&a.name, &b.name),
+                Ordering::Equal  => Self::compare(&a.name, &b.name),
                 order            => order,
             },
 
             Self::Extension(ABCabc) => match a.ext.cmp(&b.ext) {
-                Ordering::Equal  => natord::compare(&a.name, &b.name),
+                Ordering::Equal  => Self::compare(&a.name, &b.name),
                 order            => order,
             },
 
             Self::Extension(AaBbCc) => match a.ext.cmp(&b.ext) {
-                Ordering::Equal  => natord::compare_ignore_case(&a.name, &b.name),
+                Ordering::Equal  => Self::compare_ignore_case(&a.name, &b.name),
                 order            => order,
             },
 
-            Self::NameMixHidden(ABCabc) => natord::compare(
+            Self::NameMixHidden(ABCabc) => Self::compare(
                 Self::strip_dot(&a.name),
                 Self::strip_dot(&b.name)
             ),
-            Self::NameMixHidden(AaBbCc) => natord::compare_ignore_case(
+            Self::NameMixHidden(AaBbCc) => Self::compare_ignore_case(
                 Self::strip_dot(&a.name),
                 Self::strip_dot(&b.name)
             ),
         };
+    }
+
+    fn compare_ignore_case(a: &str, b: &str) -> Ordering {
+        Self::compare(a.to_lowercase().as_str(), b.to_lowercase().as_str())
+    }
+
+    fn compare(a: &str, b: &str) -> Ordering {
+        let a_cstr = CString::new(a).unwrap();
+        let b_cstr = CString::new(b).unwrap();
+        unsafe {
+            let result = strcoll(a_cstr.as_ptr(), b_cstr.as_ptr());
+            if result < 0 {
+                Ordering::Less
+            } else if result > 0 {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
     }
 
     fn strip_dot(n: &str) -> &str {

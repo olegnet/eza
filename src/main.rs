@@ -55,6 +55,7 @@ fn main() {
     #[cfg(unix)]
     unsafe {
         libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+        libc::setlocale(libc::LC_COLLATE, b"\0".as_ptr() as *const i8);
     }
 
     logger::configure(env::var_os(vars::EZA_DEBUG).or_else(|| env::var_os(vars::EXA_DEBUG)));
