@@ -268,8 +268,8 @@ impl SortField {
         return match self {
             Self::Unsorted  => Ordering::Equal,
 
-            Self::Name(ABCabc)  => natord::compare(&a.name, &b.name),
-            Self::Name(AaBbCc)  => natord::compare_ignore_case(&a.name, &b.name),
+            Self::Name(ABCabc)  => Self::compare(&a.name, &b.name),
+            Self::Name(AaBbCc)  => Self::compare_ignore_case(&a.name, &b.name),
 
             Self::Size          => a.length().cmp(&b.length()),
 
@@ -284,29 +284,58 @@ impl SortField {
             Self::CreatedDate   => a.created_time().cmp(&b.created_time()),
             Self::ModifiedAge   => b.modified_time().cmp(&a.modified_time()),  // flip b and a
             Self::FileType => match a.type_char().cmp(&b.type_char()) { // todo: this recomputes
-                Ordering::Equal  => natord::compare(&a.name, &b.name),
+                Ordering::Equal  => Self::compare(&a.name, &b.name),
                 order            => order,
             },
 
             Self::Extension(ABCabc) => match a.ext.cmp(&b.ext) {
-                Ordering::Equal  => natord::compare(&a.name, &b.name),
+                Ordering::Equal  => Self::compare(&a.name, &b.name),
                 order            => order,
             },
 
             Self::Extension(AaBbCc) => match a.ext.cmp(&b.ext) {
-                Ordering::Equal  => natord::compare_ignore_case(&a.name, &b.name),
+                Ordering::Equal  => Self::compare_ignore_case(&a.name, &b.name),
                 order            => order,
             },
 
-            Self::NameMixHidden(ABCabc) => natord::compare(
+            Self::NameMixHidden(ABCabc) => Self::compare(
                 Self::strip_dot(&a.name),
                 Self::strip_dot(&b.name)
             ),
-            Self::NameMixHidden(AaBbCc) => natord::compare_ignore_case(
+            Self::NameMixHidden(AaBbCc) => Self::compare_ignore_case(
                 Self::strip_dot(&a.name),
                 Self::strip_dot(&b.name)
             ),
         };
+    }
+
+    fn compare(a: &str, b: &str) -> Ordering {
+        Self::normalized_compare(a, b, false)
+    }
+
+    fn compare_ignore_case(a: &str, b: &str) -> Ordering {
+        Self::normalized_compare(a, b, true)
+    }
+
+    fn normalized_compare(a: &str, b: &str, ignore_case: bool) -> Ordering {
+        let normalize = |s: &str| -> String {
+            s.chars()
+                .map(|c| match c {
+                    // Treat space, dot, hyphen, underscore as equivalent
+                    ' ' | '.' | '-' | '_' => ' ',
+                    c => c,
+                })
+                .collect()
+        };
+
+        let a_norm = normalize(a);
+        let b_norm = normalize(b);
+
+        if ignore_case {
+            natord::compare(&a_norm, &b_norm)
+        } else {
+            natord::compare_ignore_case(&a_norm, &b_norm)
+        }
     }
 
     fn strip_dot(n: &str) -> &str {
