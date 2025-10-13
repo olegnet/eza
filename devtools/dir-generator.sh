@@ -136,3 +136,30 @@ touch icons/marked.md --date=@0
 # BEGIN set date
 touch --date=@0 ./*;
 # END set date
+
+# BEGIN tags
+mkdir -p tags
+touch tags/no-color
+touch tags/red
+touch tags/orange
+touch tags/yellow
+touch tags/green
+touch tags/blue
+touch tags/purple
+touch tags/grey
+touch tags/custom
+touch tags/orange-purple-and-custom
+# One of the default colorless tags from macOS "Important"
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVlJbXBvcnRhbnQICgAAAAAAAAEBAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAUAA==" tags/no-color
+# One file – one tag with the same color
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVVSZWQKNggKAAAAAAAAAQEAAAAAAAAAAgAAAAAAAAAAAAAAAAAAABAA" tags/red
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVhPcmFuZ2UKNwgKAAAAAAAAAQEAAAAAAAAAAgAAAAAAAAAAAAAAAAAAABMA" tags/orange
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVhZZWxsb3cKNQgKAAAAAAAAAQEAAAAAAAAAAgAAAAAAAAAAAAAAAAAAABMA" tags/yellow
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVdHcmVlbgoyCAoAAAAAAAABAQAAAAAAAAACAAAAAAAAAAAAAAAAAAAAEgA=" tags/green
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVZCbHVlCjQICgAAAAAAAAEBAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAARAA==" tags/blue
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVhQdXJwbGUKMwgKAAAAAAAAAQEAAAAAAAAAAgAAAAAAAAAAAAAAAAAAABMA" tags/purple
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVZHcmF5CjEICgAAAAAAAAEBAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAARAA==" tags/grey
+# Custom tag here is a tag with purple color and "custom tag" as a name
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDChAVxjdXN0b20gdGFnCjMICgAAAAAAAAEBAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAXAA==" tags/custom
+setfattr -n "user.com.apple.metadata:_kMDItemUserTags" -v "0sYnBsaXN0MDCjAQIDWE9yYW5nZQo3WFB1cnBsZQozXGN1c3RvbSB0YWcKMwgMFR4AAAAAAAABAQAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAKwA=" tags/orange-purple-and-custom
+# END tags
